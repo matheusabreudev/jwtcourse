@@ -32,6 +32,10 @@ import com.getarraycourse.course.service.UserService;
 @Qualifier("UserDetailsService")
 public class UserServiceImpl implements UserService, UserDetailsService{
 
+	private static final String NO_USER_FOUND_BY_USERNAME = "No user found by username";
+	private static final String USERNAME_ALREADY_EXISTS = null;
+	private static final String EMAIL_ALREADY_EXISTS = null;
+	private static final String FOUND_USER_BY_USERNAME = null;
 	private Logger LOGGER = org.slf4j.LoggerFactory.getLogger(getClass());
 	private UserRepository userRepository;
 	private BCryptPasswordEncoder passwordEncoder;
@@ -47,14 +51,14 @@ public class UserServiceImpl implements UserService, UserDetailsService{
 		
 		UserDom userDom = userRepository.findUserByUsername(username); 
 		if(userDom == null) {
-			LOGGER.error("User not found by username: " + username);
-			throw new UsernameNotFoundException("User not found by username: " + username);
+			LOGGER.error(NO_USER_FOUND_BY_USERNAME + username);
+			throw new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username);
 		}else {
 			userDom.setLastLoginDateDisplay(userDom.getLastLoginDate());
 			userDom.setLastLoginDate(new Date());
 			userRepository.save(userDom);
 			UserPrincipal userPrincipal = new UserPrincipal(userDom);
-			LOGGER.info("Returning found user by username: " + username);
+			LOGGER.info(FOUND_USER_BY_USERNAME + username);
 			return userPrincipal;
 		}
 	}
@@ -79,7 +83,7 @@ public class UserServiceImpl implements UserService, UserDetailsService{
 		user.setProfileImageUrl(getTemporaryProfileImageUrl());
 		userRepository.save(user);
 		LOGGER.info("New user password: " + password);
-		return null;
+		return user;
 	}
 
 	private String getTemporaryProfileImageUrl() {
@@ -99,28 +103,26 @@ public class UserServiceImpl implements UserService, UserDetailsService{
 	}
 
 	private UserDom validateNewUsernameAndEmail(String currentUsername, String newUsername, String newEmail) throws UserNotFoundException, UsernameExistException, EmailExistException{
+		UserDom userByNewUsername = findUserByUsername(newUsername);
+		UserDom userByNewEmail = findUserByEmail(newEmail);
 		if(isNotBlank(currentUsername)) {
 			UserDom currentUser = findUserByUsername(currentUsername);
 			if(currentUser == null) {
-				throw new UserNotFoundException("No user found by username" + currentUsername);
+				throw new UserNotFoundException(NO_USER_FOUND_BY_USERNAME + currentUsername);
 			}
-			UserDom userByNewUsername = findUserByUsername(newUsername);
 			if(userByNewUsername != null && !currentUser.getId().equals(userByNewUsername.getId())) {
-				throw new UsernameExistException("Username already exists");
+				throw new UsernameExistException(USERNAME_ALREADY_EXISTS);
 			}
-			UserDom userByNewEmail = findUserByEmail(newEmail);
 			if(userByNewEmail != null && !currentUser.getId().equals(userByNewEmail.getId())) {
-				throw new EmailExistException("Email already exists");
+				throw new EmailExistException(EMAIL_ALREADY_EXISTS);
 			}
 			return currentUser;
 		} else {
-			UserDom currentUser = findUserByUsername(currentUsername);
-			if(currentUser != null) {
-				throw new UsernameExistException("Username already exists");
+			if(userByNewUsername != null) {
+				throw new UsernameExistException(USERNAME_ALREADY_EXISTS);
 			}
-			UserDom userByEmail = findUserByEmail(newEmail);
-			if(userByEmail != null) {
-				throw new EmailExistException("Email already exists");
+			if(userByNewEmail != null) {
+				throw new EmailExistException(EMAIL_ALREADY_EXISTS);
 			}
 			return null;
 		}
