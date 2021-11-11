@@ -33,9 +33,9 @@ import com.getarraycourse.course.service.UserService;
 public class UserServiceImpl implements UserService, UserDetailsService{
 
 	private static final String NO_USER_FOUND_BY_USERNAME = "No user found by username";
-	private static final String USERNAME_ALREADY_EXISTS = null;
-	private static final String EMAIL_ALREADY_EXISTS = null;
-	private static final String FOUND_USER_BY_USERNAME = null;
+	private static final String USERNAME_ALREADY_EXISTS = "Username already exists";
+	private static final String EMAIL_ALREADY_EXISTS = "Email already exists";
+	private static final String FOUND_USER_BY_USERNAME = "Username found";
 	private Logger LOGGER = org.slf4j.LoggerFactory.getLogger(getClass());
 	private UserRepository userRepository;
 	private BCryptPasswordEncoder passwordEncoder;
