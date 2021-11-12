@@ -1,11 +1,13 @@
 package com.getarraycourse.course.service.impl;
 
+import static com.getarraycourse.course.enumeration.Role.ROLE_USER;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.util.Date;
 import java.util.List;
 
 import javax.transaction.Transactional;
-
-import static org.apache.commons.lang3.StringUtils.*;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -20,22 +22,19 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.getarraycourse.course.domain.UserDom;
 import com.getarraycourse.course.domain.UserPrincipal;
-import static com.getarraycourse.course.enumeration.Role.*;
 import com.getarraycourse.course.exception.domain.EmailExistException;
 import com.getarraycourse.course.exception.domain.UserNotFoundException;
 import com.getarraycourse.course.exception.domain.UsernameExistException;
 import com.getarraycourse.course.repository.UserRepository;
 import com.getarraycourse.course.service.UserService;
+import static com.getarraycourse.course.constant.UserImplConstant.*;
 
 @Service
 @Transactional
 @Qualifier("UserDetailsService")
 public class UserServiceImpl implements UserService, UserDetailsService{
 
-	private static final String NO_USER_FOUND_BY_USERNAME = "No user found by username";
-	private static final String USERNAME_ALREADY_EXISTS = "Username already exists";
-	private static final String EMAIL_ALREADY_EXISTS = "Email already exists";
-	private static final String FOUND_USER_BY_USERNAME = "Username found";
+	
 	private Logger LOGGER = org.slf4j.LoggerFactory.getLogger(getClass());
 	private UserRepository userRepository;
 	private BCryptPasswordEncoder passwordEncoder;
@@ -87,7 +86,7 @@ public class UserServiceImpl implements UserService, UserDetailsService{
 	}
 
 	private String getTemporaryProfileImageUrl() {
-		return ServletUriComponentsBuilder.fromCurrentRequest().path("/user/image/profile/temp").toUriString();
+		return ServletUriComponentsBuilder.fromCurrentRequest().path(DEFAUL_USER_IMAGE_PATH).toUriString();
 	}
 
 	private String encodePassword(String password) {
@@ -131,19 +130,16 @@ public class UserServiceImpl implements UserService, UserDetailsService{
 
 	@Override
 	public List<UserDom> gerUsers() {
-		// TODO Auto-generated method stub
-		return null;
+		return userRepository.findAll();
 	}
 
 	@Override
 	public UserDom findUserByUsername(String username) {
-		// TODO Auto-generated method stub
-		return null;
+		return userRepository.findUserByUsername(username);
 	}
 
 	@Override
 	public UserDom findUserByEmail(String email) {
-		// TODO Auto-generated method stub
-		return null;
+		return userRepository.findUserByEmail(email);
 	}
 }
