@@ -1,7 +1,5 @@
 package com.getarraycourse.course.listener;
 
-import java.util.concurrent.ExecutionException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
@@ -19,7 +17,7 @@ public class AuthenticationFailureListener {
 	}
 	
 	@EventListener
-	public void onAutheticationFailure(AuthenticationFailureBadCredentialsEvent event) throws ExecutionException {
+	public void onAutheticationFailure(AuthenticationFailureBadCredentialsEvent event) {
 		Object principal = event.getAuthentication().getPrincipal();
 		if(principal instanceof String) {
 			String username = (String) event.getAuthentication().getPrincipal();

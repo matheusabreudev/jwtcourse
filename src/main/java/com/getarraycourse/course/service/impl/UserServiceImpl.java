@@ -26,6 +26,7 @@ import com.getarraycourse.course.exception.domain.EmailExistException;
 import com.getarraycourse.course.exception.domain.UserNotFoundException;
 import com.getarraycourse.course.exception.domain.UsernameExistException;
 import com.getarraycourse.course.repository.UserRepository;
+import com.getarraycourse.course.service.LoginAttemptService;
 import com.getarraycourse.course.service.UserService;
 import static com.getarraycourse.course.constant.UserImplConstant.*;
 
@@ -38,11 +39,13 @@ public class UserServiceImpl implements UserService, UserDetailsService{
 	private Logger LOGGER = org.slf4j.LoggerFactory.getLogger(getClass());
 	private UserRepository userRepository;
 	private BCryptPasswordEncoder passwordEncoder;
+	private LoginAttemptService loginAttemptService;
 	
 	@Autowired
-	public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+	public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, LoginAttemptService loginAttemptService) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
+		this.loginAttemptService = loginAttemptService;
 	}
 
 	@Override
@@ -53,12 +56,25 @@ public class UserServiceImpl implements UserService, UserDetailsService{
 			LOGGER.error(NO_USER_FOUND_BY_USERNAME + username);
 			throw new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username);
 		}else {
+			validateLoginAttempt(userDom);
 			userDom.setLastLoginDateDisplay(userDom.getLastLoginDate());
 			userDom.setLastLoginDate(new Date());
 			userRepository.save(userDom);
 			UserPrincipal userPrincipal = new UserPrincipal(userDom);
 			LOGGER.info(FOUND_USER_BY_USERNAME + username);
 			return userPrincipal;
+		}
+	}
+
+	private void validateLoginAttempt(UserDom userDom) {
+		if(userDom.isNotLocked()) {
+			if(loginAttemptService.hasExceededMaxAttempts(userDom.getUsername())) {
+				userDom.setNotLocked(false);
+			}else {
+				userDom.setNotLocked(true);
+			}
+		}else {
+			loginAttemptService.evictUserFromLoginAttemptCache(userDom.getUsername());
 		}
 	}
 
